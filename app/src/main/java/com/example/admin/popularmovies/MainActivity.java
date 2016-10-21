@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.layout.fragment_main, new MainFragment())
+                    .add(R.id.container, new MainFragment())
                     .commit();
 
         }
