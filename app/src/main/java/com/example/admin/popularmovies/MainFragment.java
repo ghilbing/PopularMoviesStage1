@@ -2,10 +2,14 @@ package com.example.admin.popularmovies;
 
 import android.app.Activity;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -71,8 +75,30 @@ public class MainFragment extends Fragment {
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
+            setHasOptionsMenu(true);
 
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+        inflater.inflate(R.menu.menu_main, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        //Handle action bar item clicks here. The action bar will
+        //automatically handle clicks on the Home/Up button, so long
+        //as you specify a parent activity in AndroidManifest.xml
+
+        int id = item.getItemId();
+        if (id == R.id.action_refresh) {
+            FetchMoviesTask moviesTask = new FetchMoviesTask();
+            moviesTask.execute();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+
     }
 
     @Override
@@ -95,9 +121,7 @@ public class MainFragment extends Fragment {
         //Now we have some dummy movies data, create an ArrayAdapter.
         //The ArrayAdapter will take data froma source (like our dummy movies) and
         //use it to populate the ListView it's attached //
-        //
-        //
-        // TODO: 10/20/16
+
 
         mMoviesAdapter =
                 new ArrayAdapter<String>(
@@ -112,20 +136,37 @@ public class MainFragment extends Fragment {
         ListView listView = (ListView) rootView.findViewById(R.id.listview_movies);
         listView.setAdapter(mMoviesAdapter);
 
+        return rootView;
+
+    }
+
         //These two need to be declared outside the try/catch
         //so that they can be closed in the finally block
 
+    public class FetchMoviesTask extends AsyncTask<Void, Void, Void> {
+
+    private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
+
+    @Override
+    protected Void doInBackground(Void... params) {
+
+        //These two need to be declared outside the try/catch
+        //so that they can be closed in the finally block
+
+
         HttpURLConnection urlConnectionPop = null;
-        HttpURLConnection urlConnectionRat = null;
+        //HttpURLConnection urlConnectionRat = null;
         BufferedReader readerPop = null;
-        BufferedReader readerRat = null;
+        //BufferedReader readerRat = null;
 
         //Will contain the raw JSON response as a string
 
-        String moviesPopularityJsonStr = null;
-        String moviesRatedJsonStr = null;
+        String moviesPopJsonStr = null;
+        //String moviesRatJsonStr = null;
 
-        try {
+        try
+
+        {
             //Construct the URLs for the MoviesDb querys
             //Possible parameters ara available at Movies API page at
             //POPULARITY
@@ -133,51 +174,53 @@ public class MainFragment extends Fragment {
             //RATED
             //http://api.themoviedb.org/3/discover/movie?api_key=c0ce143817426b86ae199a8ede8d8775&sort_by=vote_average.desc
 
-            String baseUrl = "http://api.themoviedb.org/3/discover/movie?";
-            String apiKey = "api_key=c0ce143817426b86ae199a8ede8d8775";
-            String sortPopular = "&sort_by=popularity.desc";
-            String sortRated = "&sort_by=vote_average.desc";
+            String baseUrl = "http://api.themoviedb.org/3/discover/movie?api_key=c0ce143817426b86ae199a8ede8d8775";
+            //String apiKey = "api_key=c0ce143817426b86ae199a8ede8d8775";
+            String sortPop = "&sort_by=popularity.desc";
+            //String sortRat = "&sort_by=vote_average.desc";
 
-            URL urlPopular = new URL(baseUrl.concat(apiKey).concat(sortPopular));
-            URL urlRated = new URL (baseUrl.concat(apiKey).concat(sortRated));
+            URL urlPop = new URL(baseUrl.concat(sortPop));
+            String verUrlPop = urlPop.toString();
+            Log.i("urPopular", verUrlPop);
+            //URL urlRated = new URL (baseUrl.concat(apiKey).concat(sortRated));
 
             //Create the request to MovieDB and open the connection
 
-            urlConnectionPop = (HttpURLConnection) urlPopular.openConnection();
+            urlConnectionPop = (HttpURLConnection) urlPop.openConnection();
             urlConnectionPop.setRequestMethod("GET");
             urlConnectionPop.connect();
 
-            urlConnectionRat = (HttpURLConnection) urlRated.openConnection();
-            urlConnectionRat.setRequestMethod("GET");
-            urlConnectionRat.connect();
+            //urlConnectionRat = (HttpURLConnection) urlRated.openConnection();
+            //urlConnectionRat.setRequestMethod("GET");
+            //urlConnectionRat.connect();
 
             //Read the input stream into a String
 
             InputStream inputStreamPop = urlConnectionPop.getInputStream();
-            InputStream inputStreamRat = urlConnectionRat.getInputStream();
+            //InputStream inputStreamRat = urlConnectionRat.getInputStream();
 
             StringBuffer bufferPop = new StringBuffer();
-            StringBuffer bufferRat = new StringBuffer();
+            //StringBuffer bufferRat = new StringBuffer();
 
-            if (inputStreamPop == null){
+            if (inputStreamPop == null) {
                 //Nothing to do
                 return null;
 
             }
 
-            if (inputStreamRat == null){
-                //Nothing to do
-                return null;
+            // if (inputStreamRat == null){
+            //Nothing to do
+            //   return null;
 
-            }
+            //}
 
             readerPop = new BufferedReader(new InputStreamReader(inputStreamPop));
-            readerRat = new BufferedReader(new InputStreamReader(inputStreamRat));
+            //readerRat = new BufferedReader(new InputStreamReader(inputStreamRat));
 
             String linePop;
-            String lineRat;
+            //String lineRat;
 
-            while ((linePop = readerPop.readLine())!=null){
+            while ((linePop = readerPop.readLine()) != null) {
                 //Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
                 //But it does make debugging a "lot" easier if you print out the completed
                 //buffer for debugging
@@ -186,71 +229,56 @@ public class MainFragment extends Fragment {
 
             }
 
-            while ((lineRat = readerRat.readLine())!=null){
-                //Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-                //But it does make debugging a "lot" easier if you print out the completed
-                //buffer for debugging
+            //while ((lineRat = readerRat.readLine())!=null){
+            //Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
+            //But it does make debugging a "lot" easier if you print out the completed
+            //buffer for debugging
 
-                bufferRat.append(lineRat + "\n");
-            }
+            //  bufferRat.append(lineRat + "\n");
+            // }
 
-            if (bufferPop.length() == 0){
+            if (bufferPop.length() == 0) {
                 //Stream was empty. No point in parsing
                 return null;
             }
 
-            if (bufferRat.length() == 0){
-                //Stream was empty. No point in parsing
-                return null;
-            }
+            // if (bufferRat.length() == 0){
+            //Stream was empty. No point in parsing
+            //   return null;
+            // }
 
-            moviesPopularityJsonStr = bufferPop.toString();
-            moviesRatedJsonStr = bufferRat.toString();
+            moviesPopJsonStr = bufferPop.toString();
+            Log.v(LOG_TAG, "Movies JSON String: " + moviesPopJsonStr);
+            // moviesRatedJsonStr = bufferRat.toString();
 
 
-
-
-        }catch (IOException e){
+        } catch (IOException e) {
             Log.e("MainFragment", "Error", e);
             //If the code didn't successfully get the movie data, there's no point attemping to parse it
             return null;
 
 
-        }finally {
-            if (urlConnectionPop!=null && urlConnectionRat!=null){
+        } finally {
+            if (urlConnectionPop != null) //&& urlConnectionRat!=null){
                 urlConnectionPop.disconnect();
-                urlConnectionRat.disconnect();
-            }
-            if (readerPop !=null && readerRat != null){
-                try {
-                    readerPop.close();
-                    readerRat.close();
-                }catch (final IOException e){
-                    Log.e("MainFragment", "Error closing stream",e);
-                }
-
-            }
+            //urlConnectionRat.disconnect();
         }
 
-        return rootView;
+        if (readerPop != null) { //&& readerRat != null){
+            try {
+                readerPop.close();
+                //readerRat.close();
+            } catch (final IOException e) {
+                Log.e("MainFragment", "Error closing stream", e);
+            }
 
-        // Inflate the layout for this fragment
-       // return inflater.inflate(R.layout.fragment_main, container, false);
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
+        }
 
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
+    return null;
 
+}
+
+}
 
 }
