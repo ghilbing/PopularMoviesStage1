@@ -77,6 +77,7 @@ public class MainFragment extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
             setHasOptionsMenu(true);
 
+
         }
     }
 
