@@ -189,23 +189,23 @@ public class MainFragment extends Fragment {
 
                 //Title is in a child array called results, which is 1 element long
 
-                JSONObject titleObject = moviesJson.getJSONArray(TMDB_RESULTS).getJSONObject(0);
+                JSONObject titleObject = movie.getJSONArray(TMDB_RESULTS).getJSONObject(0);
                 title = titleObject.getString(TMDB_ORIGINAL_TITLE);
 
-                JSONObject posterObject = moviesJson.getJSONArray(TMDB_RESULTS).getJSONObject(0);
+                JSONObject posterObject = movie.getJSONArray(TMDB_RESULTS).getJSONObject(0);
                 poster = posterObject.getString(TMDB_POSTER_PATH);
 
-                JSONObject synopsisObject = moviesJson.getJSONArray(TMDB_RESULTS).getJSONObject(0);
+                JSONObject synopsisObject = movie.getJSONArray(TMDB_RESULTS).getJSONObject(0);
                 synopsis = synopsisObject.getString(TMDB_SYNOPSIS);
 
-                JSONObject ratingObject = moviesJson.getJSONArray(TMDB_RESULTS).getJSONObject(0);
+                JSONObject ratingObject = movie.getJSONArray(TMDB_RESULTS).getJSONObject(0);
                 rating = ratingObject.getString(TMDB_USER_RATING);
 
-                JSONObject dateObject = moviesJson.getJSONArray(TMDB_RESULTS).getJSONObject(0);
+                JSONObject dateObject = movie.getJSONArray(TMDB_RESULTS).getJSONObject(0);
                 date = dateObject.getString(TMDB_RELEASE_DATE);
 
 
-                resultStrs[i]= title + " - " + poster + " - " + synopsis + " - " + rating + " - " + date;
+                resultStrs[i]= title + " - "+ poster + " - " + synopsis + " - " + rating + " - " + date;
 
             }
             for (String s: resultStrs){
