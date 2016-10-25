@@ -15,6 +15,10 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,18 +76,17 @@ public class MainFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
-            setHasOptionsMenu(true);
-
-
         }
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
-        inflater.inflate(R.menu.menu_main, menu);
+        inflater.inflate(R.menu.moviesfragment, menu);
     }
 
     @Override
@@ -95,7 +98,7 @@ public class MainFragment extends Fragment {
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
             FetchMoviesTask moviesTask = new FetchMoviesTask();
-            moviesTask.execute();
+            moviesTask.execute("1000");
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -144,12 +147,87 @@ public class MainFragment extends Fragment {
         //These two need to be declared outside the try/catch
         //so that they can be closed in the finally block
 
-    public class FetchMoviesTask extends AsyncTask<Void, Void, Void> {
+    public class FetchMoviesTask extends AsyncTask<String, Void, String[]> {
 
     private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
 
+        /*Take the String representing the complete Movies in JSON Format, and
+        pull out the data we need to construct the Strings needed for the wireframes.
+
+        Fortunately parsing is easy: constructor takes the JSON string and converts it
+        into an Object hierarchy for us.
+         */
+
+        private String[] getMoviesDataFromJson(String moviesJsonStr, int cant) throws JSONException{
+
+            //These are the names of the JSON objects that need to be extracted.
+
+            final String TMDB_RESULTS = "results";
+            final String TMDB_ID = "id";
+            final String TMDB_ORIGINAL_TITLE = "original_title";
+            final String TMDB_POSTER_PATH = "poster_path";
+            final String TMDB_SYNOPSIS = "overview";
+            final String TMDB_USER_RATING = "vote_count";
+            final String TMDB_RELEASE_DATE = "release_date";
+
+            JSONObject moviesJson = new JSONObject(moviesJsonStr);
+            JSONArray moviesArray = moviesJson.getJSONArray(TMDB_RESULTS);
+
+            //TMDB returns daily movies
+
+            String[] resultStrs = new String[cant];
+            for (int i = 0; i< moviesArray.length(); i++){
+
+                String title;
+                String poster;
+                String synopsis;
+                String rating;
+                String date;
+
+                //Get the JSON object representing the movie
+                JSONObject movie = moviesArray.getJSONObject(i);
+
+                //Title is in a child array called results, which is 1 element long
+
+                JSONObject titleObject = moviesJson.getJSONArray(TMDB_RESULTS).getJSONObject(0);
+                title = titleObject.getString(TMDB_ORIGINAL_TITLE);
+
+                JSONObject posterObject = moviesJson.getJSONArray(TMDB_RESULTS).getJSONObject(0);
+                poster = posterObject.getString(TMDB_POSTER_PATH);
+
+                JSONObject synopsisObject = moviesJson.getJSONArray(TMDB_RESULTS).getJSONObject(0);
+                synopsis = synopsisObject.getString(TMDB_SYNOPSIS);
+
+                JSONObject ratingObject = moviesJson.getJSONArray(TMDB_RESULTS).getJSONObject(0);
+                rating = ratingObject.getString(TMDB_USER_RATING);
+
+                JSONObject dateObject = moviesJson.getJSONArray(TMDB_RESULTS).getJSONObject(0);
+                date = dateObject.getString(TMDB_RELEASE_DATE);
+
+
+                resultStrs[i]= title + " - " + poster + " - " + synopsis + " - " + rating + " - " + date;
+
+            }
+            for (String s: resultStrs){
+                Log.i(LOG_TAG, "Movie entry: " + s);
+            }
+
+            return resultStrs;
+
+        }
+
     @Override
-    protected Void doInBackground(Void... params) {
+    protected String[] doInBackground(String... params) {
+
+        //If there's no movie, there's nothing to look up. Verify size of params.
+
+        if (params.length == 0){
+            return null;
+
+        }
+
+
+
 
         //These two need to be declared outside the try/catch
         //so that they can be closed in the finally block
@@ -165,6 +243,11 @@ public class MainFragment extends Fragment {
         String moviesPopJsonStr = null;
         //String moviesRatJsonStr = null;
 
+
+        int cant = 20;
+
+
+
         try
 
         {
@@ -174,6 +257,21 @@ public class MainFragment extends Fragment {
             //http://api.themoviedb.org/3/discover/movie?api_key=c0ce143817426b86ae199a8ede8d8775&sort_by=popularity.desc
             //RATED
             //http://api.themoviedb.org/3/discover/movie?api_key=c0ce143817426b86ae199a8ede8d8775&sort_by=vote_average.desc
+
+
+            Uri.Builder builder = new Uri.Builder();
+            builder.scheme("https")
+                    .authority("api.themoviedb.org")
+                    .appendPath("3")
+                    .appendPath("discover")
+                    .appendPath("movie")
+                    .appendQueryParameter("api_key", "c0ce143817426b86ae199a8ede8d8775")
+                    .appendQueryParameter("sort_by", "popularity.desc");
+
+            String myUrlPop = builder.build().toString();
+
+            Log.i("Builder Uri", myUrlPop);
+
 
             String baseUrl = "http://api.themoviedb.org/3/discover/movie?api_key=c0ce143817426b86ae199a8ede8d8775";
             //String apiKey = "api_key=c0ce143817426b86ae199a8ede8d8775";
@@ -275,9 +373,14 @@ public class MainFragment extends Fragment {
 
         }
 
+    try {
+        return getMoviesDataFromJson(moviesPopJsonStr, cant);
+    }catch (JSONException e){
+        Log.i(LOG_TAG, e.getMessage(), e);
+        e.printStackTrace();
+    }
 
-    return null;
-
+        return null;
 }
 
 }
