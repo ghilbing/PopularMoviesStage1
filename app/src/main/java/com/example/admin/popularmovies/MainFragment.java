@@ -1,6 +1,7 @@
 package com.example.admin.popularmovies;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -12,8 +13,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -139,6 +142,16 @@ public class MainFragment extends Fragment {
         //Get a reference to the ListView, and attach this adapter to it.
         ListView listView = (ListView) rootView.findViewById(R.id.listview_movies);
         listView.setAdapter(mMoviesAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String movie = mMoviesAdapter.getItem(position);
+                Intent intent = new Intent(getActivity(), DetailActivity.class)
+                        .putExtra(Intent.EXTRA_TEXT, movie);
+                startActivity(intent);
+            }
+        });
 
         return rootView;
 
@@ -161,7 +174,8 @@ public class MainFragment extends Fragment {
         private String[] getMoviesDataFromJson(String moviesJsonStr, int cant) throws JSONException{
 
             //These are the names of the JSON objects that need to be extracted.
-
+            final String TMDB_PAGES = "page";
+            final String TMDB_TOTAL_PAGES = "total_pages";
             final String TMDB_RESULTS = "results";
             final String TMDB_ID = "id";
             final String TMDB_ORIGINAL_TITLE = "original_title";
@@ -189,20 +203,15 @@ public class MainFragment extends Fragment {
 
                 //Title is in a child array called results, which is 1 element long
 
-                JSONObject titleObject = movie.getJSONArray(TMDB_RESULTS).getJSONObject(0);
-                title = titleObject.getString(TMDB_ORIGINAL_TITLE);
+                title = movie.getString(TMDB_ORIGINAL_TITLE);
 
-                JSONObject posterObject = movie.getJSONArray(TMDB_RESULTS).getJSONObject(0);
-                poster = posterObject.getString(TMDB_POSTER_PATH);
+                poster = movie.getString(TMDB_POSTER_PATH);
 
-                JSONObject synopsisObject = movie.getJSONArray(TMDB_RESULTS).getJSONObject(0);
-                synopsis = synopsisObject.getString(TMDB_SYNOPSIS);
+                synopsis = movie.getString(TMDB_SYNOPSIS);
 
-                JSONObject ratingObject = movie.getJSONArray(TMDB_RESULTS).getJSONObject(0);
-                rating = ratingObject.getString(TMDB_USER_RATING);
+                rating = movie.getString(TMDB_USER_RATING);
 
-                JSONObject dateObject = movie.getJSONArray(TMDB_RESULTS).getJSONObject(0);
-                date = dateObject.getString(TMDB_RELEASE_DATE);
+                date = movie.getString(TMDB_RELEASE_DATE);
 
 
                 resultStrs[i]= title + " - "+ poster + " - " + synopsis + " - " + rating + " - " + date;
@@ -234,14 +243,14 @@ public class MainFragment extends Fragment {
 
 
         HttpURLConnection urlConnectionPop = null;
-        //HttpURLConnection urlConnectionRat = null;
+
         BufferedReader readerPop = null;
-        //BufferedReader readerRat = null;
+
 
         //Will contain the raw JSON response as a string
 
         String moviesPopJsonStr = null;
-        //String moviesRatJsonStr = null;
+
 
 
         int cant = 20;
@@ -276,12 +285,12 @@ public class MainFragment extends Fragment {
             String baseUrl = "http://api.themoviedb.org/3/discover/movie?api_key=c0ce143817426b86ae199a8ede8d8775";
             //String apiKey = "api_key=c0ce143817426b86ae199a8ede8d8775";
             String sortPop = "&sort_by=popularity.desc";
-            //String sortRat = "&sort_by=vote_average.desc";
+
 
             URL urlPop = new URL(baseUrl.concat(sortPop));
             String verUrlPop = urlPop.toString();
             Log.i("urPopular", verUrlPop);
-            //URL urlRated = new URL (baseUrl.concat(apiKey).concat(sortRated));
+
 
             //Create the request to MovieDB and open the connection
 
@@ -289,17 +298,12 @@ public class MainFragment extends Fragment {
             urlConnectionPop.setRequestMethod("GET");
             urlConnectionPop.connect();
 
-            //urlConnectionRat = (HttpURLConnection) urlRated.openConnection();
-            //urlConnectionRat.setRequestMethod("GET");
-            //urlConnectionRat.connect();
-
             //Read the input stream into a String
 
             InputStream inputStreamPop = urlConnectionPop.getInputStream();
-            //InputStream inputStreamRat = urlConnectionRat.getInputStream();
 
             StringBuffer bufferPop = new StringBuffer();
-            //StringBuffer bufferRat = new StringBuffer();
+
 
             if (inputStreamPop == null) {
                 //Nothing to do
@@ -307,17 +311,11 @@ public class MainFragment extends Fragment {
 
             }
 
-            // if (inputStreamRat == null){
-            //Nothing to do
-            //   return null;
-
-            //}
-
             readerPop = new BufferedReader(new InputStreamReader(inputStreamPop));
-            //readerRat = new BufferedReader(new InputStreamReader(inputStreamRat));
+
 
             String linePop;
-            //String lineRat;
+
 
             while ((linePop = readerPop.readLine()) != null) {
                 //Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
@@ -328,27 +326,14 @@ public class MainFragment extends Fragment {
 
             }
 
-            //while ((lineRat = readerRat.readLine())!=null){
-            //Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-            //But it does make debugging a "lot" easier if you print out the completed
-            //buffer for debugging
-
-            //  bufferRat.append(lineRat + "\n");
-            // }
-
             if (bufferPop.length() == 0) {
                 //Stream was empty. No point in parsing
                 return null;
             }
 
-            // if (bufferRat.length() == 0){
-            //Stream was empty. No point in parsing
-            //   return null;
-            // }
-
             moviesPopJsonStr = bufferPop.toString();
             Log.v(LOG_TAG, "Movies JSON String: " + moviesPopJsonStr);
-            // moviesRatedJsonStr = bufferRat.toString();
+
 
 
         } catch (IOException e) {
@@ -358,15 +343,15 @@ public class MainFragment extends Fragment {
 
 
         } finally {
-            if (urlConnectionPop != null) //&& urlConnectionRat!=null){
+            if (urlConnectionPop != null)
                 urlConnectionPop.disconnect();
-            //urlConnectionRat.disconnect();
+
         }
 
-        if (readerPop != null) { //&& readerRat != null){
+        if (readerPop != null) {
             try {
                 readerPop.close();
-                //readerRat.close();
+
             } catch (final IOException e) {
                 Log.e("MainFragment", "Error closing stream", e);
             }
@@ -382,6 +367,18 @@ public class MainFragment extends Fragment {
 
         return null;
 }
+
+        @Override
+        protected void onPostExecute (String[] result){
+
+            if (result != null){
+                mMoviesAdapter.clear();
+                for(String movieStr: result){
+                    mMoviesAdapter.add(movieStr);
+                }
+                //New data is back from the server.
+            }
+        }
 
 }
 
