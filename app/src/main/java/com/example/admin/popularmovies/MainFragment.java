@@ -1,21 +1,32 @@
 package com.example.admin.popularmovies;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.GridView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -31,6 +42,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.prefs.PreferenceChangeEvent;
+import java.util.prefs.PreferenceChangeListener;
 
 
 /**
@@ -46,12 +59,27 @@ public class MainFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    ArrayAdapter<String> mMoviesAdapter;
+    //ArrayAdapter<String> mMoviesAdapter;
+
+    static GridView gridViewMovies;
+    static ArrayList<String> posterPopRat;
+    static ArrayList<String> titles;
+    static ArrayList<String> synopsis;
+    static ArrayList<String> dates;
+    static ArrayList<String> rating;
+    static int ancho;
+    static boolean byPop = true;
+    static String API_KEY = "";
+
+    static PreferenceChangeListener listener;
+    static SharedPreferences sharedPreferences;
+    static boolean byRat;
+
+
 
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-
 
 
     /**
@@ -72,6 +100,7 @@ public class MainFragment extends Fragment {
         return fragment;
     }
 
+
     public MainFragment() {
         // Required empty public constructor
     }
@@ -88,12 +117,12 @@ public class MainFragment extends Fragment {
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.moviesfragment, menu);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item){
+    public boolean onOptionsItemSelected(MenuItem item) {
         //Handle action bar item clicks here. The action bar will
         //automatically handle clicks on the Home/Up button, so long
         //as you specify a parent activity in AndroidManifest.xml
@@ -101,7 +130,7 @@ public class MainFragment extends Fragment {
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
             FetchMoviesTask moviesTask = new FetchMoviesTask();
-            moviesTask.execute("1000");
+            moviesTask.execute();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -112,274 +141,301 @@ public class MainFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        String[] data = {
-
-                "Spiderman",
-                "Batman returns",
-                "Heroes",
-                "Cinderela",
-                "Walle",
-                "Finding Dory",
-                "Maleficent"
-        };
-
-        List<String> weekMovies = new ArrayList<String>(Arrays.asList(data));
-
-        //Now we have some dummy movies data, create an ArrayAdapter.
-        //The ArrayAdapter will take data froma source (like our dummy movies) and
-        //use it to populate the ListView it's attached //
-
-
-        mMoviesAdapter =
-                new ArrayAdapter<String>(
-                        getActivity(), //The current context (this activity)
-                        R.layout.list_item_movies, //The name of the layout ID.
-                        R.id.list_item_movies_textview, //The ID of the textview to populate
-                        weekMovies);
-
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        //Get a reference to the ListView, and attach this adapter to it.
-        ListView listView = (ListView) rootView.findViewById(R.id.listview_movies);
-        listView.setAdapter(mMoviesAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        if (getActivity() != null) {
 
+            ArrayList<String> arrayList = new ArrayList<String>();
+            PosterAdapter posterAdapter = new PosterAdapter(getActivity(), arrayList, ancho);
+            gridViewMovies = (GridView) rootView.findViewById(R.id.gridView_movies);
+
+            gridViewMovies.setColumnWidth(ancho);
+            gridViewMovies.setAdapter(posterAdapter);
+
+        }
+
+        gridViewMovies.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String movie = mMoviesAdapter.getItem(position);
+
                 Intent intent = new Intent(getActivity(), DetailActivity.class)
-                        .putExtra(Intent.EXTRA_TEXT, movie);
+                        .putExtra("titles", titles.get(position))
+                        .putExtra("poster", posterPopRat.get(position))
+                        .putExtra("synopsis", synopsis.get(position))
+                        .putExtra("dates", dates.get(position))
+                        .putExtra("rating", rating.get(position));
+
                 startActivity(intent);
+
+
+
+
             }
         });
+
 
         return rootView;
 
     }
 
-        //These two need to be declared outside the try/catch
-        //so that they can be closed in the finally block
 
-    public class FetchMoviesTask extends AsyncTask<String, Void, String[]> {
+    private class PreferenceChangeListener implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-    private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
-
-        /*Take the String representing the complete Movies in JSON Format, and
-        pull out the data we need to construct the Strings needed for the wireframes.
-
-        Fortunately parsing is easy: constructor takes the JSON string and converts it
-        into an Object hierarchy for us.
-         */
-
-        private String[] getMoviesDataFromJson(String moviesJsonStr, int cant) throws JSONException{
-
-            //These are the names of the JSON objects that need to be extracted.
-            final String TMDB_PAGES = "page";
-            final String TMDB_TOTAL_PAGES = "total_pages";
-            final String TMDB_RESULTS = "results";
-            final String TMDB_ID = "id";
-            final String TMDB_ORIGINAL_TITLE = "original_title";
-            final String TMDB_POSTER_PATH = "poster_path";
-            final String TMDB_SYNOPSIS = "overview";
-            final String TMDB_USER_RATING = "vote_count";
-            final String TMDB_RELEASE_DATE = "release_date";
-
-            JSONObject moviesJson = new JSONObject(moviesJsonStr);
-            JSONArray moviesArray = moviesJson.getJSONArray(TMDB_RESULTS);
-
-            //TMDB returns daily movies
-
-            String[] resultStrs = new String[cant];
-            for (int i = 0; i< moviesArray.length(); i++){
-
-                String title;
-                String poster;
-                String synopsis;
-                String rating;
-                String date;
-
-                //Get the JSON object representing the movie
-                JSONObject movie = moviesArray.getJSONObject(i);
-
-                //Title is in a child array called results, which is 1 element long
-
-                title = movie.getString(TMDB_ORIGINAL_TITLE);
-
-                poster = movie.getString(TMDB_POSTER_PATH);
-
-                synopsis = movie.getString(TMDB_SYNOPSIS);
-
-                rating = movie.getString(TMDB_USER_RATING);
-
-                date = movie.getString(TMDB_RELEASE_DATE);
-
-
-                resultStrs[i]= title + " - "+ poster + " - " + synopsis + " - " + rating + " - " + date;
-
-            }
-            for (String s: resultStrs){
-                Log.i(LOG_TAG, "Movie entry: " + s);
-            }
-
-            return resultStrs;
-
-        }
-
-    @Override
-    protected String[] doInBackground(String... params) {
-
-        //If there's no movie, there's nothing to look up. Verify size of params.
-
-        if (params.length == 0){
-            return null;
-
-        }
-
-
-
-
-        //These two need to be declared outside the try/catch
-        //so that they can be closed in the finally block
-
-
-        HttpURLConnection urlConnectionPop = null;
-
-        BufferedReader readerPop = null;
-
-
-        //Will contain the raw JSON response as a string
-
-        String moviesPopJsonStr = null;
-
-
-
-        int cant = 20;
-
-
-
-        try
-
-        {
-            //Construct the URLs for the MoviesDb querys
-            //Possible parameters ara available at Movies API page at
-            //POPULARITY
-            //http://api.themoviedb.org/3/discover/movie?api_key=c0ce143817426b86ae199a8ede8d8775&sort_by=popularity.desc
-            //RATED
-            //http://api.themoviedb.org/3/discover/movie?api_key=c0ce143817426b86ae199a8ede8d8775&sort_by=vote_average.desc
-
-
-            Uri.Builder builder = new Uri.Builder();
-            builder.scheme("https")
-                    .authority("api.themoviedb.org")
-                    .appendPath("3")
-                    .appendPath("discover")
-                    .appendPath("movie")
-                    .appendQueryParameter("api_key", "c0ce143817426b86ae199a8ede8d8775")
-                    .appendQueryParameter("sort_by", "popularity.desc");
-
-            String myUrlPop = builder.build().toString();
-
-            Log.i("Builder Uri", myUrlPop);
-
-
-            String baseUrl = "http://api.themoviedb.org/3/discover/movie?api_key=c0ce143817426b86ae199a8ede8d8775";
-            //String apiKey = "api_key=c0ce143817426b86ae199a8ede8d8775";
-            String sortPop = "&sort_by=popularity.desc";
-
-
-            URL urlPop = new URL(baseUrl.concat(sortPop));
-            String verUrlPop = urlPop.toString();
-            Log.i("urPopular", verUrlPop);
-
-
-            //Create the request to MovieDB and open the connection
-
-            urlConnectionPop = (HttpURLConnection) urlPop.openConnection();
-            urlConnectionPop.setRequestMethod("GET");
-            urlConnectionPop.connect();
-
-            //Read the input stream into a String
-
-            InputStream inputStreamPop = urlConnectionPop.getInputStream();
-
-            StringBuffer bufferPop = new StringBuffer();
-
-
-            if (inputStreamPop == null) {
-                //Nothing to do
-                return null;
-
-            }
-
-            readerPop = new BufferedReader(new InputStreamReader(inputStreamPop));
-
-
-            String linePop;
-
-
-            while ((linePop = readerPop.readLine()) != null) {
-                //Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-                //But it does make debugging a "lot" easier if you print out the completed
-                //buffer for debugging
-
-                bufferPop.append(linePop + "\n");
-
-            }
-
-            if (bufferPop.length() == 0) {
-                //Stream was empty. No point in parsing
-                return null;
-            }
-
-            moviesPopJsonStr = bufferPop.toString();
-            Log.v(LOG_TAG, "Movies JSON String: " + moviesPopJsonStr);
-
-
-
-        } catch (IOException e) {
-            Log.e("MainFragment", "Error", e);
-            //If the code didn't successfully get the movie data, there's no point attemping to parse it
-            return null;
-
-
-        } finally {
-            if (urlConnectionPop != null)
-                urlConnectionPop.disconnect();
-
-        }
-
-        if (readerPop != null) {
-            try {
-                readerPop.close();
-
-            } catch (final IOException e) {
-                Log.e("MainFragment", "Error closing stream", e);
-            }
-
-        }
-
-    try {
-        return getMoviesDataFromJson(moviesPopJsonStr, cant);
-    }catch (JSONException e){
-        Log.i(LOG_TAG, e.getMessage(), e);
-        e.printStackTrace();
-    }
-
-        return null;
-}
 
         @Override
-        protected void onPostExecute (String[] result){
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            gridViewMovies.setAdapter(null);
+            onStart();
 
-            if (result != null){
-                mMoviesAdapter.clear();
-                for(String movieStr: result){
-                    mMoviesAdapter.add(movieStr);
+        }
+    }
+
+    @Override
+    public void onStart() {
+
+        super.onStart();
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        listener = new PreferenceChangeListener();
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener);
+
+        if (sharedPreferences.getString("sortby", "popularity").equals("popularity")) {
+
+            getActivity().setTitle("Popular Movies");
+            byPop = true;
+
+        } else if (sharedPreferences.getString("sortby", "popularity").equals("rating")) {
+
+            getActivity().setTitle("Rating");
+            byPop = false;
+
+        }
+
+        TextView textView = new TextView(getActivity());
+        LinearLayout linearLayout = (LinearLayout) getActivity().findViewById(R.id.container);
+
+        gridViewMovies.setVisibility(GridView.VISIBLE);
+        linearLayout.removeView(textView);
+
+        if (isInternetConection()) {
+
+            new FetchMoviesTask().execute();
+
+        } else {
+
+            TextView textView1 = new TextView(getActivity());
+            LinearLayout linearLayout1 = (LinearLayout) getActivity().findViewById(R.id.container);
+            textView1.setText("No internet conection");
+
+            if (linearLayout1.getChildCount() == 1) {
+
+                linearLayout1.addView(textView1);
+
+            }
+
+            gridViewMovies.setVisibility(GridView.GONE);
+
+        }
+
+
+    }
+
+    public boolean isInternetConection() {
+
+        ConnectivityManager connectivityManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnected();
+
+    }
+
+    public class FetchMoviesTask extends AsyncTask<Void, Void, ArrayList<String>> {
+
+
+        @Override
+        protected ArrayList<String> doInBackground(Void... params) {
+
+            while (true) {
+
+                try {
+
+                    posterPopRat = new ArrayList(Arrays.asList(getPathsAPI(byPop)));
+                    return posterPopRat;
+
+                } catch (Exception e) {
+
+                    continue;
+
                 }
-                //New data is back from the server.
             }
         }
 
-}
+        @Override
+        protected void onPostExecute(ArrayList<String> result) {
+
+            if (result != null && getActivity() != null) {
+
+                PosterAdapter adapter = new PosterAdapter(getActivity(), result, ancho);
+                gridViewMovies.setAdapter(adapter);
+
+            }
+        }
+
+        public String[] getPathsAPI(boolean byPop) {
+
+            while (true) {
+
+                HttpURLConnection urlConnection = null;
+                BufferedReader bufferedReader = null;
+                String JSONResultString;
+
+
+                try {
+                    String urlString = null;
+                    if (byPop) {
+                        urlString = "http://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=" + API_KEY;
+
+                    } else {
+
+                        urlString = "http://api.themoviedb.org/3/discover/movie?sort_by=vote_average.desc&api_key=" + API_KEY;
+
+                    }
+
+                    URL url = new URL(urlString);
+                    urlConnection = (HttpURLConnection) url.openConnection();
+                    urlConnection.setRequestMethod("GET");
+                    urlConnection.connect();
+
+                    InputStream inputStream = urlConnection.getInputStream();
+                    StringBuffer buffer = new StringBuffer();
+
+                    if (inputStream == null) {
+
+                        return null;
+
+                    }
+
+                    bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                    String line;
+
+                    while ((line = bufferedReader.readLine()) != null) {
+
+                        buffer.append(line + "\n");
+
+                    }
+
+                    if (buffer.length() == 0) {
+
+                        return null;
+
+                    }
+
+                    JSONResultString = buffer.toString();
+
+                    try {
+
+                        titles = new ArrayList<String>(Arrays.asList(getStringsFromJSON(JSONResultString, "original_title")));
+                        synopsis = new ArrayList<String>(Arrays.asList(getStringsFromJSON(JSONResultString, "overview")));
+                        dates = new ArrayList<String>(Arrays.asList(getStringsFromJSON(JSONResultString, "release_date")));
+                        rating = new ArrayList<String>(Arrays.asList(getStringsFromJSON(JSONResultString, "vote_average")));
+
+
+                        return getPathsJSON(JSONResultString);
+
+                    } catch (JSONException e) {
+
+                        return null;
+
+                    }
+
+
+                } catch (Exception e) {
+
+                    continue;
+
+                } finally {
+                    if (urlConnection != null) {
+
+                        urlConnection.disconnect();
+
+                    }
+
+                    if (bufferedReader != null) {
+
+                        try {
+                            bufferedReader.close();
+
+                        } catch (final IOException e) {
+
+
+                        }
+                    }
+                }
+            }
+
+
+        }
+
+        public String[] getStringsFromJSON(String JSONStringParam, String param) throws JSONException{
+
+            JSONObject jsonObject = new JSONObject(JSONStringParam);
+
+            JSONArray jsonArray = jsonObject.getJSONArray("results");
+            String[] result = new String[jsonArray.length()];
+
+            for(int i = 0; i<jsonArray.length();i++){
+
+                JSONObject jsonMovie = jsonArray.getJSONObject(i);
+                if(param.equals("vote_average")){
+
+                    Double vote = jsonMovie.getDouble("vote_average");
+                    String rating = Double.toString(vote)+"/10";
+                    result[i]=rating;
+
+                }
+                else {
+
+                    String data = jsonMovie.getString(param);
+                    result[i] = data;
+
+                }
+
+            }
+
+            return result;
+
+        }
+
+        public String[] getPathsJSON(String JSONStringParam) throws JSONException {
+
+            JSONObject jsonObject = new JSONObject(JSONStringParam);
+
+            JSONArray jsonArray = jsonObject.getJSONArray("results");
+            String[] result = new String[jsonArray.length()];
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+
+                JSONObject posterMovie = jsonArray.getJSONObject(i);
+                String posterPath = posterMovie.getString("poster_path");
+                result[i] = posterPath;
+
+            }
+
+            return result;
+
+
+        }
+
+
+    }
 
 }
+
+
+
+
+
+
+
+
+
+
+

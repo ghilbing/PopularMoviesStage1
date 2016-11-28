@@ -13,6 +13,8 @@ public class SettingsActivity extends PreferenceActivity implements Preference.O
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
+        addPreferencesFromResource(R.xml.pref_general);
+        bindPreferenceSummaryToValue(findPreference("sortby"));
 
         //Add general preferences defined in the XML file
 
@@ -56,4 +58,6 @@ public class SettingsActivity extends PreferenceActivity implements Preference.O
 
         return true;
     }
+
+
 }

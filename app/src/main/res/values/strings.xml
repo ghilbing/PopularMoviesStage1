@@ -8,4 +8,8 @@
     <string name="title_activity_detail">Details</string>
     <string name="title_activity_settings">Settings</string>
     <string name="action_share">Share</string>
+    
+    <string-array name="preferences_entries"><item>Popularity</item><item>Rating</item></string-array>
+    <string-array name="preferences_values"><item>popularity</item><item>rating</item></string-array>
+    
 </resources>
