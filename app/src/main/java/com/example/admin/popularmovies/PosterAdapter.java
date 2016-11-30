@@ -1,9 +1,6 @@
 package com.example.admin.popularmovies;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +24,7 @@ public class PosterAdapter extends BaseAdapter{
 
         mContext = context;
         arrayList = paths;
-        ancho = x;
+        ancho = x+1;
 
     }
 
@@ -66,9 +63,10 @@ public class PosterAdapter extends BaseAdapter{
         }
 
 
-        Picasso.with(mContext).load("http://image.tmdb.org/t/p/w92/" + arrayList.get(position)).fit().centerInside().into(imageView);
-        Log.i("Movies", String.valueOf(imageView));
+        Picasso.with(mContext).load("http://image.tmdb.org/t/p/w185/" + arrayList.get(position)).into(imageView);
 
+
+        Log.i("Ancho", String.valueOf(ancho));
 
         return imageView;
     }

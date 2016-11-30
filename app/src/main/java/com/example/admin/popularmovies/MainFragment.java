@@ -1,33 +1,25 @@
 package com.example.admin.popularmovies;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.util.Log;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -41,9 +33,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.prefs.PreferenceChangeEvent;
-import java.util.prefs.PreferenceChangeListener;
 
 
 /**
@@ -69,7 +58,7 @@ public class MainFragment extends Fragment {
     static ArrayList<String> rating;
     static int ancho;
     static boolean byPop = true;
-    static String API_KEY = "";
+    static String API_KEY = "c0ce143817426b86ae199a8ede8d8775";
 
     static PreferenceChangeListener listener;
     static SharedPreferences sharedPreferences;
@@ -211,12 +200,12 @@ public class MainFragment extends Fragment {
         }
 
         TextView textView = new TextView(getActivity());
-        LinearLayout linearLayout = (LinearLayout) getActivity().findViewById(R.id.container);
+        FrameLayout frameLayout = (FrameLayout) getActivity().findViewById(R.id.container);
 
         gridViewMovies.setVisibility(GridView.VISIBLE);
-        linearLayout.removeView(textView);
+        frameLayout.removeView(textView);
 
-        if (isInternetConection()) {
+        if (isInternetConnection()) {
 
             new FetchMoviesTask().execute();
 
@@ -224,7 +213,7 @@ public class MainFragment extends Fragment {
 
             TextView textView1 = new TextView(getActivity());
             LinearLayout linearLayout1 = (LinearLayout) getActivity().findViewById(R.id.container);
-            textView1.setText("No internet conection");
+            textView1.setText("No internet connection");
 
             if (linearLayout1.getChildCount() == 1) {
 
@@ -239,7 +228,7 @@ public class MainFragment extends Fragment {
 
     }
 
-    public boolean isInternetConection() {
+    public boolean isInternetConnection() {
 
         ConnectivityManager connectivityManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();

@@ -13,8 +13,8 @@
     <GridView
         android:id="@+id/gridView_movies"
         android:background="#FFFFFF"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:numColumns="auto_fit"
         android:horizontalSpacing="0dp"
         android:verticalSpacing="0dp"

@@ -3,11 +3,8 @@ package com.example.admin.popularmovies;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.MenuItemCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -46,16 +43,21 @@ public class DetailActivityFragment extends Fragment {
 
             poster = intent.getStringExtra("poster");
             ImageView imageView = (ImageView) rootView.findViewById(R.id.poster);
-            Picasso.with(getActivity()).load("http://image.tmdb.org/tp/w185/" + poster).resize(MainFragment.ancho, (int)(MainFragment.ancho*1.5)).into(imageView);
+            //imageView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            Picasso.with(getActivity()).load("http://image.tmdb.org/tp/w185/" + poster).into(imageView);
+            Log.i("Poster", poster);
 
 
         }
 
-        if(intent != null && intent.hasExtra("title")){
+        if(intent != null && intent.hasExtra("titles")){
 
-            title = intent.getStringExtra("title");
+            title = intent.getStringExtra("titles");
             TextView textView = (TextView) rootView.findViewById(R.id.title);
             textView.setText(title);
+
+            Log.i("Title", title);
 
         }
 
@@ -65,6 +67,8 @@ public class DetailActivityFragment extends Fragment {
             TextView textView = (TextView) rootView.findViewById(R.id.rating);
             textView.setText(synopsis);
 
+            Log.i("Synopsis", synopsis);
+
         }
 
         if(intent != null && intent.hasExtra("rating")){
@@ -73,13 +77,17 @@ public class DetailActivityFragment extends Fragment {
             TextView textView = (TextView) rootView.findViewById(R.id.rating);
             textView.setText(rating);
 
+            Log.i("Rating", rating);
+
         }
 
-        if(intent != null && intent.hasExtra("date")){
+        if(intent != null && intent.hasExtra("dates")){
 
-            date = intent.getStringExtra("date");
+            date = intent.getStringExtra("dates");
             TextView textView = (TextView) rootView.findViewById(R.id.date);
             textView.setText(date);
+
+            Log.i("Date", date);
 
         }
 
