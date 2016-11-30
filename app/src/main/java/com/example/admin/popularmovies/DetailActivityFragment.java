@@ -3,7 +3,6 @@ package com.example.admin.popularmovies;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,12 +40,11 @@ public class DetailActivityFragment extends Fragment {
 
         if(intent != null && intent.hasExtra("poster")){
 
+
             poster = intent.getStringExtra("poster");
             ImageView imageView = (ImageView) rootView.findViewById(R.id.poster);
-            //imageView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            Picasso.with(getActivity()).load("http://image.tmdb.org/tp/w185/" + poster).into(imageView);
-            Log.i("Poster", poster);
+            imageView.setAdjustViewBounds(true);
+            Picasso.with(getActivity()).load("http://image.tmdb.org/t/p/w185" + poster).into(imageView);
 
 
         }
@@ -57,17 +55,17 @@ public class DetailActivityFragment extends Fragment {
             TextView textView = (TextView) rootView.findViewById(R.id.title);
             textView.setText(title);
 
-            Log.i("Title", title);
+
 
         }
 
         if(intent != null && intent.hasExtra("synopsis")){
 
             synopsis = intent.getStringExtra("synopsis");
-            TextView textView = (TextView) rootView.findViewById(R.id.rating);
+            TextView textView = (TextView) rootView.findViewById(R.id.synopsis);
             textView.setText(synopsis);
 
-            Log.i("Synopsis", synopsis);
+
 
         }
 
@@ -77,7 +75,7 @@ public class DetailActivityFragment extends Fragment {
             TextView textView = (TextView) rootView.findViewById(R.id.rating);
             textView.setText(rating);
 
-            Log.i("Rating", rating);
+
 
         }
 
@@ -87,7 +85,7 @@ public class DetailActivityFragment extends Fragment {
             TextView textView = (TextView) rootView.findViewById(R.id.date);
             textView.setText(date);
 
-            Log.i("Date", date);
+
 
         }
 

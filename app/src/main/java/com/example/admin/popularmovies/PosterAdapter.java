@@ -54,11 +54,16 @@ public class PosterAdapter extends BaseAdapter{
         if(convertView == null){
 
             imageView = new ImageView(mContext);
+            imageView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            imageView.setAdjustViewBounds(true);
+
 
 
         } else {
 
             imageView = (ImageView) convertView;
+
 
         }
 

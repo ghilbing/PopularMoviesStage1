@@ -18,7 +18,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.GridView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -56,6 +55,7 @@ public class MainFragment extends Fragment {
     static ArrayList<String> synopsis;
     static ArrayList<String> dates;
     static ArrayList<String> rating;
+
     static int ancho;
     static boolean byPop = true;
     static String API_KEY = "c0ce143817426b86ae199a8ede8d8775";
@@ -141,6 +141,8 @@ public class MainFragment extends Fragment {
             gridViewMovies.setColumnWidth(ancho);
             gridViewMovies.setAdapter(posterAdapter);
 
+
+
         }
 
         gridViewMovies.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -208,16 +210,17 @@ public class MainFragment extends Fragment {
         if (isInternetConnection()) {
 
             new FetchMoviesTask().execute();
+            textView.setText("");
 
         } else {
 
             TextView textView1 = new TextView(getActivity());
-            LinearLayout linearLayout1 = (LinearLayout) getActivity().findViewById(R.id.container);
+            FrameLayout frameLayout1 = (FrameLayout) getActivity().findViewById(R.id.container);
             textView1.setText("No internet connection");
 
-            if (linearLayout1.getChildCount() == 1) {
+            if (frameLayout1.getChildCount() == 1) {
 
-                linearLayout1.addView(textView1);
+                frameLayout1.addView(textView1);
 
             }
 
