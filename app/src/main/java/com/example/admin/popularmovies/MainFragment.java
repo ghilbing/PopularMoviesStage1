@@ -58,7 +58,7 @@ public class MainFragment extends Fragment {
 
     static int ancho;
     static boolean byPop = true;
-    static String API_KEY = "c0ce143817426b86ae199a8ede8d8775";
+    static String API_KEY = "";
 
     static PreferenceChangeListener listener;
     static SharedPreferences sharedPreferences;

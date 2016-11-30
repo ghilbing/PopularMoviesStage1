@@ -27,7 +27,7 @@
             android:parentActivityName=".MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.admin.popularmovies"/>
+                android:value="com.example.admin.popularmovies.MainActivity"/>
 
         </activity>
         <activity
