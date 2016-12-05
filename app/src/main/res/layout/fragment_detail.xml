@@ -1,60 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp"
+    android:fillViewport="false">
 
 <LinearLayout
 
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:id="@+id/containerdetail"
-    tools:context="com.example.admin.popularmovies.DetailActivity">
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:id="@+id/containerdetail">
 
 
-    <TableLayout
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:stretchColumns="1">
-
-        <TableRow>
             <ImageView
                 android:id="@+id/poster"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-        </TableRow>
+                android:layout_height="200dp"
+                android:scaleType="centerCrop"/>
 
-        <TableRow>
+
             <TextView
                 android:id="@+id/title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                tools:textSize="18sp"
                 android:textAppearance="@color/colorPrimaryDark"
-                android:textSize="@dimen/title" />
-        </TableRow>
+                android:textSize="@dimen/title"
+                android:layout_column="2"/>
 
-        <TableRow>
             <TextView
                 android:id="@+id/date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
-        </TableRow>
 
-        <TableRow>
             <TextView
                 android:id="@+id/rating"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
-        </TableRow>
 
-        <TableRow>
             <TextView
                 android:id="@+id/synopsis"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:inputType="textMultiLine" />
-        </TableRow>
 
-    </TableLayout>
+    </LinearLayout>
 
-</LinearLayout>
+</ScrollView>
+
