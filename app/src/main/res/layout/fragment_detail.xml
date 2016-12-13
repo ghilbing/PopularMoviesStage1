@@ -2,51 +2,145 @@
 
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:padding="10dp"
     android:fillViewport="false">
 
-<LinearLayout
+<RelativeLayout
 
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:orientation="vertical"
     android:id="@+id/containerdetail">
 
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="100dp"
+        android:paddingLeft="15dp"
+        android:textSize="@dimen/title"
+        android:background="#808080"
+        android:textColor="#ffe6e6"
+        android:gravity="center_vertical"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"/>
 
-            <ImageView
-                android:id="@+id/poster"
-                android:layout_width="wrap_content"
-                android:layout_height="200dp"
-                android:scaleType="centerCrop"/>
+
+    <ImageView
+        android:id="@+id/poster"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleType="centerCrop"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="115dp"
+        android:paddingBottom="10dp"
+        android:layout_below="@+id/title"
+        android:layout_alignParentLeft="true"/>
 
 
-            <TextView
-                android:id="@+id/title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="@color/colorPrimaryDark"
-                android:textSize="@dimen/title"
-                android:layout_column="2"/>
 
-            <TextView
-                android:id="@+id/date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
 
-            <TextView
-                android:id="@+id/rating"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="15dp"
+        android:textSize="@dimen/date"
+        android:textColor="#000000"
+        android:paddingRight="5dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="5dp"
+        android:layout_below="@+id/title"
+        android:layout_toRightOf="@+id/poster"/>
 
-            <TextView
-                android:id="@+id/synopsis"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:inputType="textMultiLine" />
+
+    <TextView
+        android:id="@+id/rating"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="15dp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:paddingRight="5dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="5dp"
+        android:layout_below="@+id/date"
+        android:layout_toRightOf="@+id/poster"/>
+
+
+    <Button
+        android:layout_width="100dp"
+        android:layout_height="30dp"
+        android:text="FAVORITE"
+        android:layout_below="@+id/rating"
+        android:layout_toRightOf="@+id/poster"
+        android:padding="0dp"
+        android:id="@+id/favorite"
+        android:gravity="center"
+        android:onClick="favorite"/>
+
+    <TextView
+        android:id="@+id/synopsis"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="5dp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:paddingRight="5dp"
+        android:paddingTop="0dp"
+        android:paddingBottom="5dp"
+        android:layout_below="@+id/poster" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingRight="5dp"
+        android:paddingLeft="5dp"
+        android:layout_below="@+id/synopsis"
+        android:orientation="vertical">
+
+        <Button
+            android:layout_width="100dp"
+            android:layout_height="30dp"
+            android:text="TRAILER 1"
+            android:padding="0dp"
+            android:id="@+id/trailer1"
+            android:gravity="center"
+            android:onClick="trailer1"/>
+
+        <Button
+            android:layout_width="100dp"
+            android:layout_height="30dp"
+            android:text="TRAILER 2"
+            android:padding="0dp"
+            android:id="@+id/trailer2"
+            android:gravity="center"
+            android:onClick="trailer2"/>
+
+        <TextView
+            android:id="@+id/comments"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="5dp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:paddingRight="5dp"
+            android:paddingTop="0dp"
+            android:paddingBottom="5dp"
+            android:layout_below="@+id/trailer2" />
+
+
+
+
 
     </LinearLayout>
+
+    </RelativeLayout>
 
 </ScrollView>
 

@@ -1,6 +1,9 @@
 package com.example.admin.popularmovies;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -67,13 +70,24 @@ public class PosterAdapter extends BaseAdapter{
 
         }
 
+        Drawable drawable = resizeDrawable(mContext.getResources().getDrawable(R.drawable.movies));
 
-        Picasso.with(mContext).load("http://image.tmdb.org/t/p/w185/" + arrayList.get(position)).into(imageView);
+
+        //Picasso.with(mContext).load("http://image.tmdb.org/t/p/w185/" + arrayList.get(position)).into(imageView);
+        Picasso.with(mContext).load("http://image.tmdb.org/t/p/w185/" + arrayList.get(position)).resize(ancho, (int)(ancho*1.5)).into(imageView);
 
 
         Log.i("Ancho", String.valueOf(ancho));
 
         return imageView;
+    }
+
+    private Drawable resizeDrawable(Drawable image){
+
+        Bitmap bitmap = ((BitmapDrawable)image).getBitmap();
+        Bitmap bitmap1 = Bitmap.createScaledBitmap(bitmap, ancho, (int)(ancho*1.5), false);
+        return new BitmapDrawable(mContext.getResources(),bitmap1);
+
     }
 
 

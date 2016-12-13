@@ -3,18 +3,21 @@ package com.example.admin.popularmovies;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Point;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.GridView;
@@ -55,13 +58,20 @@ public class MainFragment extends Fragment {
     static ArrayList<String> synopsis;
     static ArrayList<String> dates;
     static ArrayList<String> rating;
+    static ArrayList<String> ids;
+    static ArrayList<String> youtube1;
+    static ArrayList<String> youtube2;
+    static ArrayList<String> favorite;
+    static ArrayList<ArrayList<String>> comments;
 
     static int ancho;
     static boolean byPop = true;
-    static String API_KEY = "";
+    static String API_KEY = "c0ce143817426b86ae199a8ede8d8775";
 
     static PreferenceChangeListener listener;
     static SharedPreferences sharedPreferences;
+    static boolean byFav;
+    static ArrayList<String> posterFav = new ArrayList<String>();
     static boolean byRat;
 
 
@@ -132,6 +142,20 @@ public class MainFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
+        WindowManager windowManager = (WindowManager) getActivity().getSystemService(Context.WINDOW_SERVICE);
+        Display display = windowManager.getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+
+        if(MainActivity.TABLET){
+
+            ancho = size.x/6;
+
+        }
+        else ancho=size.x/3;
+
+
+
         if (getActivity() != null) {
 
             ArrayList<String> arrayList = new ArrayList<String>();
@@ -154,12 +178,13 @@ public class MainFragment extends Fragment {
                         .putExtra("poster", posterPopRat.get(position))
                         .putExtra("synopsis", synopsis.get(position))
                         .putExtra("dates", dates.get(position))
-                        .putExtra("rating", rating.get(position));
+                        .putExtra("rating", rating.get(position))
+                        .putExtra("youtube1", youtube1.get(position))
+                        .putExtra("youtube2", youtube2.get(position))
+                        .putExtra("comments", comments.get(position))
+                        .putExtra("favorite", favorite.get(position));
 
                 startActivity(intent);
-
-
-
 
             }
         });
@@ -182,54 +207,102 @@ public class MainFragment extends Fragment {
     }
 
     @Override
-    public void onStart() {
+    public void onStart()
+
+    {
 
         super.onStart();
+
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         listener = new PreferenceChangeListener();
         sharedPreferences.registerOnSharedPreferenceChangeListener(listener);
 
-        if (sharedPreferences.getString("sortby", "popularity").equals("popularity")) {
+        if (sharedPreferences.getString("sortby", "popularity").equals("popularity"))
+
+        {
 
             getActivity().setTitle("Popular Movies");
             byPop = true;
+            byFav = false;
 
         } else if (sharedPreferences.getString("sortby", "popularity").equals("rating")) {
 
             getActivity().setTitle("Rating");
             byPop = false;
+            byFav = false;
+
+        } else if (sharedPreferences.getString("sortby", "popularity").equals("favorites"))
+
+        {
+
+            getActivity().setTitle("Favorites");
+            byPop = false;
+            byFav = true;
 
         }
 
         TextView textView = new TextView(getActivity());
         FrameLayout frameLayout = (FrameLayout) getActivity().findViewById(R.id.container);
 
-        gridViewMovies.setVisibility(GridView.VISIBLE);
-        frameLayout.removeView(textView);
+        if (byFav)
+        {
 
-        if (isInternetConnection()) {
+            if (posterFav.size() == 0)
+            {
 
-            new FetchMoviesTask().execute();
-            textView.setText("");
+                textView.setText("You have no favorites");
+                if (frameLayout.getChildCount() == 1)
 
-        } else {
+                    frameLayout.addView(textView);
+                    gridViewMovies.setVisibility(GridView.GONE);
 
-            TextView textView1 = new TextView(getActivity());
-            FrameLayout frameLayout1 = (FrameLayout) getActivity().findViewById(R.id.container);
-            textView1.setText("No internet connection");
+                } else {
 
-            if (frameLayout1.getChildCount() == 1) {
+                    gridViewMovies.setVisibility(GridView.VISIBLE);
+                    frameLayout.removeView(textView);
 
-                frameLayout1.addView(textView1);
+                }
+                if (posterFav != null && getActivity() != null) {
+
+                    PosterAdapter posterAdapter = new PosterAdapter(getActivity(), posterFav, ancho);
+                    gridViewMovies.setAdapter(posterAdapter);
+
+                }
+
+            } else {
+
+                gridViewMovies.setVisibility(GridView.VISIBLE);
+                frameLayout.removeView(textView);
 
             }
 
-            gridViewMovies.setVisibility(GridView.GONE);
+
+            if (isInternetConnection()) {
+
+                //gridViewMovies.setVisibility(GridView.VISIBLE);
+                new FetchMoviesTask().execute();
+                textView.setText("");
+
+            } else {
+
+                TextView textView1 = new TextView(getActivity());
+                FrameLayout frameLayout1 = (FrameLayout) getActivity().findViewById(R.id.container);
+                textView1.setText("No internet connection");
+
+                if (frameLayout1.getChildCount() == 1) {
+
+                    frameLayout1.addView(textView1);
+
+                }
+
+                gridViewMovies.setVisibility(GridView.GONE);
+
+            }
+
 
         }
 
 
-    }
 
     public boolean isInternetConnection() {
 
@@ -328,8 +401,39 @@ public class MainFragment extends Fragment {
                         synopsis = new ArrayList<String>(Arrays.asList(getStringsFromJSON(JSONResultString, "overview")));
                         dates = new ArrayList<String>(Arrays.asList(getStringsFromJSON(JSONResultString, "release_date")));
                         rating = new ArrayList<String>(Arrays.asList(getStringsFromJSON(JSONResultString, "vote_average")));
+                        ids = new ArrayList<String>(Arrays.asList(getStringsFromJSON(JSONResultString, "id")));
 
+                        while(true) {
 
+                            youtube1 = new ArrayList<String>(Arrays.asList(getYoutubeFromId(ids, 0)));
+                            youtube2 = new ArrayList<String>(Arrays.asList(getYoutubeFromId(ids, 1)));
+
+                            int nCount = 0;
+
+                            for (int i = 0; i < youtube1.size(); i++) {
+
+                                if (youtube1.get(i) == null) {
+
+                                    nCount++;
+                                    youtube1.set(i, "no video");
+                                }
+                            }
+
+                            for (int i = 0; i < youtube2.size(); i++) {
+
+                                if (youtube2.get(i) == null) {
+
+                                    nCount++;
+                                    youtube2.set(i, "no video");
+                                }
+                            }
+
+                            if (nCount > 2) continue;
+                            break;
+
+                        }
+
+                        comments = getCommentsFromId(ids);
                         return getPathsJSON(JSONResultString);
 
                     } catch (JSONException e) {
@@ -365,6 +469,246 @@ public class MainFragment extends Fragment {
 
 
         }
+
+        public String[] getYoutubeFromId(ArrayList<String> ids, int position)
+        {
+
+            String[] results = new String [ids.size()];
+
+                for (int i=0; i<ids.size(); i++)
+                {
+
+                    HttpURLConnection urlConnection = null;
+                    BufferedReader reader = null;
+                    String JSONResultString;
+
+                    try {
+
+                        String urlString = null;
+                        urlString = "http://api.themoviedb.org/3/movie/" + ids.get(i) + "/videos?api_key" + API_KEY;
+
+                        URL url = new URL(urlString);
+                        urlConnection = (HttpURLConnection) url.openConnection();
+                        urlConnection.setRequestMethod("GET");
+                        urlConnection.connect();
+
+                        InputStream inputStream = urlConnection.getInputStream();
+                        StringBuffer buffer = new StringBuffer();
+                        if (inputStream == null)
+                        {
+                            return null;
+                        }
+
+                        reader = new BufferedReader(new InputStreamReader(inputStream));
+                        String line;
+
+                        while ((line = reader.readLine())!=null)
+                        {
+                            buffer.append(line + "\n");
+                        }
+
+                        if (buffer.length()==0)
+                        {
+                            return null;
+
+                        }
+
+                        JSONResultString = buffer.toString();
+
+                        try {
+
+                            results[i] = getYoutubeFromJSON(JSONResultString, position);
+
+                        }catch (JSONException e){
+
+                            results[i]="no video";
+
+                        }
+
+                    } catch (Exception e){
+
+
+                    } finally {
+
+                        if(urlConnection != null) {
+
+                            urlConnection.disconnect();
+
+                        }
+
+                        if (reader != null) {
+
+                            try {
+
+                                reader.close();
+
+                            }catch (final IOException e){
+
+                            }
+                        }
+
+                    }
+
+                }
+
+            return results;
+
+        }
+
+        public ArrayList<ArrayList<String>> getCommentsFromId(ArrayList<String> ids)
+        {
+
+            loop:
+            while (true)
+            {
+                ArrayList<ArrayList<String>> results = new ArrayList<>();
+                for (int i = 0; i<ids.size();i++)
+                {
+                    HttpURLConnection urlConnection = null;
+                    BufferedReader reader = null;
+                    String JSONResultString;
+
+                    try
+                    {
+                        String urlString = null;
+                        urlString = "http://api.themovie.org/3/movie/" + ids.get(i) + "/reviews?api_key=" + API_KEY;
+                        URL url = new URL(urlString);
+                        urlConnection = (HttpURLConnection) url.openConnection();
+                        urlConnection.setRequestMethod("GET");
+                        urlConnection.connect();
+
+                        InputStream inputStream = urlConnection.getInputStream();
+                        StringBuffer buffer = new StringBuffer();
+                        if (inputStream == null)
+                        {
+                            return null;
+
+                        }
+
+                        reader = new BufferedReader(new InputStreamReader(inputStream));
+                        String line;
+
+                        while ((line = reader.readLine())!=null)
+                        {
+                            buffer.append(line + "\n");
+
+                        }
+                        if(buffer.length() == 0)
+                        {
+                            return null;
+
+                        }
+                        JSONResultString = buffer.toString();
+
+                        try{
+                            results.add(getCommentsFromJSON(JSONResultString));
+                        }catch (JSONException e){
+
+                            return null;
+                        }
+
+
+
+                    }catch (Exception e){
+
+                        continue loop;
+
+                    }finally {
+
+                        if(urlConnection != null){
+
+                            urlConnection.disconnect();
+
+                        }
+
+                        if (reader != null){
+
+                            try{
+                                reader.close();
+
+                            }catch (final IOException e){
+
+                            }
+
+                        }
+
+                    }
+
+
+                }
+
+                return results;
+
+            }
+
+        }
+
+        public ArrayList<String> getCommentsFromJSON(String JSONStringParam) throws JSONException {
+
+            JSONObject jsonObject = new JSONObject(JSONStringParam);
+            JSONArray jsonArray = jsonObject.getJSONArray("results");
+            ArrayList<String> results = new ArrayList<>();
+
+            if(jsonArray.length()==0)
+            {
+                results.add("No reviews");
+                return results;
+
+            }
+
+            for (int i = 0; i<jsonArray.length(); i++)
+            {
+
+                JSONObject result = jsonArray.getJSONObject(i);
+                results.add(result.getString("content"));
+
+            }
+
+            return results;
+
+
+        }
+
+        public String getYoutubeFromJSON(String JSONStringParam, int position) throws JSONException
+        {
+            JSONObject jsonObject = new JSONObject(JSONStringParam);
+            JSONArray jsonArray = jsonObject.getJSONArray("results");
+            JSONObject video;
+
+            String result = "no videos";
+
+            if(position==0)
+            {
+                video = jsonArray.getJSONObject(0);
+                result = video.getString("key");
+
+            }
+
+            else if(position==1)
+            {
+                if(jsonArray.length()>1)
+                {
+                    video = jsonArray.getJSONObject(1);
+
+                }
+                else {
+
+                    video = jsonArray.getJSONObject(0);
+
+                }
+
+                result = video.getString("key");
+
+            }
+
+            return result;
+
+
+        }
+
+
+
+
 
         public String[] getStringsFromJSON(String JSONStringParam, String param) throws JSONException{
 
