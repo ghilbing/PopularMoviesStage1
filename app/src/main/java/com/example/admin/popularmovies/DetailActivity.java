@@ -1,9 +1,14 @@
 package com.example.admin.popularmovies;
 
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 
 
 /**
@@ -26,6 +31,7 @@ public class DetailActivity extends AppCompatActivity {
         @Override
         public boolean onCreateOptionsMenu(Menu menu){
             //Inflate the menu: this adds items to the action bar if it is present.
+            getMenuInflater().inflate(R.menu.menu_main, menu);
 
             return true;
 
@@ -41,11 +47,40 @@ public class DetailActivity extends AppCompatActivity {
             //noninspection SimplifiableIfStatement
             if (id == R.id.action_settings){
 
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
+
                 return true;
             }
             return super.onOptionsItemSelected(item);
         }
 
+    public void favorite(View view){
+
+        Button button = (Button)findViewById(R.id.favorite);
+        if (button.getText().equals("FAVORITE")){
+
+            button.setText("NO FAVORITE");
+            button.getBackground().setColorFilter(Color.GRAY, PorterDuff.Mode.MULTIPLY);
+
+        } else {
+
+            button.setText("FAVORITE");
+            button.getBackground().setColorFilter(Color.YELLOW, PorterDuff.Mode.MULTIPLY);
+
+        }
+
+    }
+
+    public void trailer1(View view){
+
+
+    }
+
+    public void trailer2(View view){
+
+
+    }
 
 
 

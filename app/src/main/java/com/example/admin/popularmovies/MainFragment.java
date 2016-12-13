@@ -318,7 +318,7 @@ public class MainFragment extends Fragment {
         @Override
         protected ArrayList<String> doInBackground(Void... params) {
 
-            while (true) {
+           //while (true) {
 
                 try {
 
@@ -327,10 +327,14 @@ public class MainFragment extends Fragment {
 
                 } catch (Exception e) {
 
-                    continue;
+                //   continue;
 
                 }
-            }
+
+
+          //  }
+
+            return posterPopRat;
         }
 
         @Override
@@ -346,7 +350,7 @@ public class MainFragment extends Fragment {
 
         public String[] getPathsAPI(boolean byPop) {
 
-            while (true) {
+        //    while (true) {
 
                 HttpURLConnection urlConnection = null;
                 BufferedReader bufferedReader = null;
@@ -403,7 +407,7 @@ public class MainFragment extends Fragment {
                         rating = new ArrayList<String>(Arrays.asList(getStringsFromJSON(JSONResultString, "vote_average")));
                         ids = new ArrayList<String>(Arrays.asList(getStringsFromJSON(JSONResultString, "id")));
 
-                        while(true) {
+                      //  while(true) {
 
                             youtube1 = new ArrayList<String>(Arrays.asList(getYoutubeFromId(ids, 0)));
                             youtube2 = new ArrayList<String>(Arrays.asList(getYoutubeFromId(ids, 1)));
@@ -428,10 +432,10 @@ public class MainFragment extends Fragment {
                                 }
                             }
 
-                            if (nCount > 2) continue;
-                            break;
+                            if (nCount > 2) //continue;
+                           // break;
 
-                        }
+               //         }
 
                         comments = getCommentsFromId(ids);
                         return getPathsJSON(JSONResultString);
@@ -445,7 +449,7 @@ public class MainFragment extends Fragment {
 
                 } catch (Exception e) {
 
-                    continue;
+                 //   continue;
 
                 } finally {
                     if (urlConnection != null) {
@@ -465,7 +469,9 @@ public class MainFragment extends Fragment {
                         }
                     }
                 }
-            }
+          //  }
+
+            return null;
 
 
         }
@@ -558,8 +564,8 @@ public class MainFragment extends Fragment {
         public ArrayList<ArrayList<String>> getCommentsFromId(ArrayList<String> ids)
         {
 
-            loop:
-            while (true)
+         //   loop:
+         //   while (true)
             {
                 ArrayList<ArrayList<String>> results = new ArrayList<>();
                 for (int i = 0; i<ids.size();i++)
@@ -611,7 +617,7 @@ public class MainFragment extends Fragment {
 
                     }catch (Exception e){
 
-                        continue loop;
+                      //  continue loop;
 
                     }finally {
 
